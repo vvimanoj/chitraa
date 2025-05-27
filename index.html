@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>For Chitra</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background: linear-gradient(145deg, #fff0f5, #ffe4e1);
+      color: #444;
+      overflow-x: hidden;
+      text-align: center;
+      cursor: url('flower-cursor.png'), auto;
+      min-height: 100vh;
+      position: relative;
+    }
+    .container { padding: 2rem 1rem; }
+    .profile-pic {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid #ff69b4;
+      box-shadow: 0 0 15px rgba(255, 105, 180, 0.4);
+      animation: bounce 2s infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+    button {
+      padding: 1rem 2rem;
+      background: #ff69b4;
+      color: white;
+      border: none;
+      border-radius: 1rem;
+      font-size: 1rem;
+      margin-top: 1rem;
+      cursor: pointer;
+      animation: pulse 2s infinite;
+      transition: background 0.3s, transform 0.2s;
+    }
+    button:hover {
+      background: #ff85c1;
+      transform: scale(1.05);
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    .hidden { display: none; }
+    #gameGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+      gap: 10px;
+      max-width: 320px;
+      margin: 2rem auto;
+    }
+    .box {
+      width: 60px;
+      height: 60px;
+      background: #ffe4e1;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+    }
+    .box:hover {
+      background: #ffb6c1;
+      transform: scale(1.1);
+    }
+    .gifts img {
+      width: 150px;
+      margin: 1rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .poem-line {
+      margin: 1rem 0;
+      font-size: 1.2rem;
+      animation: fadeIn 2s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .emoji-garden {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+    .emoji {
+      position: absolute;
+      font-size: 1.5rem;
+      animation: floatDown linear infinite;
+    }
+    @keyframes floatDown {
+      from { transform: translateY(-50px); opacity: 1; }
+      to { transform: translateY(100vh); opacity: 0; }
+    }
+    .audio-control {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      background: #ff69b4;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 1rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      z-index: 10;
+    }
+    @media (max-width: 500px) {
+      .box { width: 50px; height: 50px; }
+      button { padding: 0.8rem 1.5rem; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <audio id="bgMusic" loop autoplay>
+    <source src="Tum.mp3" type="audio/mpeg" />
+    Your browser does not support the audio element.
+  </audio>
+  <div class="audio-control" onclick="toggleAudio()">🔊 Music</div>
+  <div class="emoji-garden" id="emojiGarden"></div>
+
+  <div class="container">
+    <section class="welcome">
+      <img src="profile.jpg" alt="Chitra's Profile Picture" class="profile-pic"/>
+      <h1>Hi Chitraa! 🌸</h1>
+      <p>Just wanted to brighten your day with something sweet and fun.</p>
+      <button onclick="startGame()">Start the Surprise 🎁</button>
+    </section>
+
+    <section class="game hidden" id="gameSection">
+      <h2>Poetry Puzzle Hunt 🧩💖</h2>
+      <p>Click the cute icons to uncover your poem in order!</p>
+      <div id="gameGrid"></div>
+    </section>
+
+    <section class="reveal hidden" id="giftSection">
+      <h2>Hello Chitra Ji 🌷</h2>
+      <div id="poemDisplay"></div>
+      <div class="gifts">
+        <img src="cf.jpg" alt="Chocolates" />
+      </div>
+      <p style="font-size: 1.1rem; margin-top: 1rem;">Hope this made you smile 😊</p>
+    </section>
+  </div>
+
+  <script>
+    const poemLines = [
+      "Your smile is like a morning sun,",
+      "Bright and soft, second to none.",
+      "Chitra, in every moment, calm or wild,",
+      "You carry warmth, gentle and styled.",
+      "With chocolates sweet and petals fair,",
+      "Here's a little love and care."
+    ];
+    const icons = ['🌼', '🌸', '✨', '💕', '🍃', '🐝', '🌷', '💫', '🦋', '💮'];
+
+    let poemIndex = 0;
+
+    function startGame() {
+      document.querySelector('.welcome').classList.add('hidden');
+      document.getElementById('gameSection').classList.remove('hidden');
+
+      const grid = document.getElementById('gameGrid');
+      grid.innerHTML = '';
+      poemIndex = 0;
+
+      const totalBoxes = 12;
+      for (let i = 0; i < totalBoxes; i++) {
+        const box = document.createElement('div');
+        box.className = 'box';
+        box.textContent = icons[Math.floor(Math.random() * icons.length)];
+
+        box.onclick = () => {
+          if (poemIndex < poemLines.length) {
+            const msg = document.createElement('p');
+            msg.className = 'poem-line';
+            msg.textContent = poemLines[poemIndex];
+            document.getElementById('poemDisplay').appendChild(msg);
+            poemIndex++;
+            box.textContent = '📝';
+            box.onclick = null;
+
+            if (poemIndex === poemLines.length) {
+              document.getElementById('gameSection').classList.add('hidden');
+              document.getElementById('giftSection').classList.remove('hidden');
+            }
+          } else {
+            box.textContent = '❌';
+            box.onclick = null;
+          }
+        };
+        grid.appendChild(box);
+      }
+    }
+
+    function createFloatingEmojis() {
+      const garden = document.getElementById('emojiGarden');
+      for (let i = 0; i < 30; i++) {
+        const emoji = document.createElement('div');
+        emoji.className = 'emoji';
+        emoji.textContent = icons[Math.floor(Math.random() * icons.length)];
+        emoji.style.left = Math.random() * 100 + 'vw';
+        emoji.style.top = '-50px';
+        emoji.style.animationDuration = (4 + Math.random() * 6) + 's';
+        emoji.style.fontSize = (1 + Math.random() * 2) + 'rem';
+        emoji.style.animationDelay = Math.random() * 3 + 's';
+        garden.appendChild(emoji);
+      }
+    }
+
+    createFloatingEmojis();
+
+    function toggleAudio() {
+      const audio = document.getElementById("bgMusic");
+      if (audio.paused) {
+        audio.play();
+        document.querySelector(".audio-control").textContent = "🔊 Music";
+      } else {
+        audio.pause();
+        document.querySelector(".audio-control").textContent = "🔇 Music";
+      }
+    }
+  </script>
+</body>
+</html>
