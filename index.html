@@ -129,7 +129,7 @@
   </style>
 </head>
 <body>
-  <audio id="bgMusic" loop autoplay>
+  <audio id="bgMusic" loop>
     <source src="Tum.mp3" type="audio/mpeg" />
     Your browser does not support the audio element.
   </audio>
@@ -170,7 +170,6 @@
       "Here's a little love and care."
     ];
     const icons = ['🌼', '🌸', '✨', '💕', '🍃', '🐝', '🌷', '💫', '🦋', '💮'];
-
     let poemIndex = 0;
 
     function startGame() {
@@ -200,6 +199,11 @@
             if (poemIndex === poemLines.length) {
               document.getElementById('gameSection').classList.add('hidden');
               document.getElementById('giftSection').classList.remove('hidden');
+
+              const audio = document.getElementById("bgMusic");
+              audio.play().catch(error => {
+                console.log("Autoplay blocked:", error);
+              });
             }
           } else {
             box.textContent = '❌';
